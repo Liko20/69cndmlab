@@ -49,22 +49,35 @@ def main(argv=None):  # pylint: disable=unused-argument
     with open(FLAGS.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     # load testing images.
-    rgb_list, gray_list = load_imgs(config['img_paths'], config['net']['max_dim'])
+    img_path=[]
+    #I modified this 069
+    for i in range(2,15):
+      img_path.append("dataset/{}-{}.jpg".format(i,1))
+      img_path.append("dataset/{}-{}.jpg".format(i,2))
+    #I modified this 069
+    
+    #rgb_list, gray_list = load_imgs(config['img_paths'], config['net']['max_dim'])
+    rgb_list, gray_list = load_imgs(img_path, config['net']['max_dim'])
     # extract regional features.
     descs, kpts = extract_local_features(gray_list, config['model_path'], config['net'])
     # feature matching and draw matches.
     matcher = MatcherWrapper()
-    match, mask = matcher.get_matches(
-        descs[0], descs[1], kpts[0], kpts[1],
+    #I modified this 205121069
+    i=0
+    j=1
+    while j<len(rgb_list):
+      match, mask = matcher.get_matches(
+        descs[i], descs[j], kpts[i], kpts[j],
         ratio=config['match']['ratio_test'], cross_check=config['match']['cross_check'],
         err_thld=3, ransac=True, info='ASLFeat')
-    # draw matches
-    disp = matcher.draw_matches(rgb_list[0], kpts[0], rgb_list[1], kpts[1], match, mask)
+      # draw matches
+      disp = matcher.draw_matches(rgb_list[i], kpts[i], rgb_list[j], kpts[j], match, mask)
 
-    output_name = 'disp.jpg'
-    print('image save to', output_name)
-    plt.imsave(output_name, disp)
-
-
+      output_name = 'disp{}.jpg'.format(int(j/2)+1)
+      print('image save to', output_name)
+      plt.imsave(output_name, disp)
+      i += 2
+      j += 2
+      #I modified this 069
 if __name__ == '__main__':
     tf.compat.v1.app.run()
